@@ -4,12 +4,6 @@ use std::collections::VecDeque;
 use crate::backend::server::Server;
 
 #[derive(Debug, Clone)]
-pub enum Algorithms {
-    RoundRobin
-}
-
-
-#[derive(Debug, Clone)]
 struct LoadBalancer {
     pub server_list: Arc<Mutex<VecDeque<Server>>>,
     current_server_index: usize,

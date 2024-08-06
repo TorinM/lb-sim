@@ -1,50 +1,49 @@
-use std::sync::Arc;
-use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
-use rand::{Rng, thread_rng};
+use rand::{thread_rng, Rng};
+use std::net::SocketAddr;
 use std::time::Duration;
 use tokio::time::sleep;
-use hyper::{Request, Response};
-use std::convert::Infallible;
-use http_body_util::Full;
-use hyper::body::Bytes;
-
-
 
 #[derive(Debug, Clone)]
-pub struct Server {
-    address: String,
-    load_factor: Arc<AtomicUsize>,
+pub struct BackendServer {
+    address: SocketAddr,
     failure_probability: f64,
-    healthy: Arc<AtomicBool>,
-    processing_time: Arc<AtomicUsize>,
+    is_healthy: bool,
+    processing_time_ms: u64,
 }
-impl Server {
-    pub fn new(address: String, failure_probability: f64, load_factor: Arc<AtomicUsize>, processing_time: Arc<AtomicUsize>) -> Self {
+impl BackendServer {
+    pub fn new(
+        address: SocketAddr,
+        failure_probability: f64,
+        processing_time_ms: u64,
+    ) -> Self {
         Self {
             address,
-            load_factor,
             failure_probability,
-            healthy: Arc::new(AtomicBool::from(true)),
-            processing_time,
+            is_healthy: true,
+            processing_time_ms,
         }
     }
-
-    async fn handle_request(&self, _req: Request<hyper::body::Incoming>) -> Result<Response<Full<Bytes>>, Infallible> {
-        // Simulate processing time
-        let delay = self.processing_time.load(Ordering::Relaxed);
-        sleep(Duration::from_millis(delay as u64)).await;
-        Ok(Response::new(Full::new(Bytes::from(format!("Handled by server at {}", self.address)))))
+    
+    async fn handle_request(&self) {
+        sleep(Duration::from_millis(self.processing_time_ms));
+        println!("Request processed at server: {}", self.address.to_string());
     }
 
-
-    pub async fn health_check(&self) {
+    pub async fn health_check(&mut self) {
         let mut rng = thread_rng();
         if rng.gen::<f64>() < self.failure_probability {
-            self.healthy.store(false, Ordering::SeqCst);
+            self.is_healthy = false;
             println!("Server at {} has failed.", self.address);
         } else {
-            self.healthy.store(true, Ordering::SeqCst);
+            self.is_healthy = true;
             println!("Server at {} is healthy.", self.address);
         }
     }
+
+    pub async fn run(&self) -> Result<(), Box<dyn std::error::Error>> {
+        loop {
+           
+        }
+    }
 }
+
