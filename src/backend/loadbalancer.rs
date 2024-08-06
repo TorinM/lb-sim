@@ -26,6 +26,6 @@ impl LoadBalancer {
     async fn round_robin(&mut self) {
         let server = self.server_list.get(self.current_server_index).unwrap();
         self.current_server_index = (self.current_server_index + 1) % self.server_list.len();
-        server.handle_request().await;
+        let _ = server.run().await;
     }
 }

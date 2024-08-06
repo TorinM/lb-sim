@@ -24,7 +24,7 @@ impl BackendServer {
     }
     
     pub async fn handle_request(&self) {
-        sleep(Duration::from_millis(self.processing_time_ms));
+        sleep(Duration::from_millis(self.processing_time_ms)).await;
         println!("Request processed at server: {}", self.address);
     }
 
@@ -39,10 +39,9 @@ impl BackendServer {
         }
     }
 
-    pub async fn run(&mut self) -> Result<(), Box<dyn std::error::Error>> {
+    pub async fn run(&self) -> Result<(), Box<dyn std::error::Error>> {
         loop {
             self.handle_request().await;
-            self.health_check().await;
         }
     }
 }
