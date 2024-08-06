@@ -1,18 +1,17 @@
 use rand::{thread_rng, Rng};
-use std::net::SocketAddr;
 use std::time::Duration;
 use tokio::time::sleep;
 
 #[derive(Debug, Clone)]
 pub struct BackendServer {
-    address: SocketAddr,
+    address: String,
     failure_probability: f64,
     is_healthy: bool,
     processing_time_ms: u64,
 }
 impl BackendServer {
     pub fn new(
-        address: SocketAddr,
+        address: String,
         failure_probability: f64,
         processing_time_ms: u64,
     ) -> Self {
@@ -24,9 +23,9 @@ impl BackendServer {
         }
     }
     
-    async fn handle_request(&self) {
+    pub async fn handle_request(&self) {
         sleep(Duration::from_millis(self.processing_time_ms));
-        println!("Request processed at server: {}", self.address.to_string());
+        println!("Request processed at server: {}", self.address);
     }
 
     pub async fn health_check(&mut self) {
@@ -40,9 +39,10 @@ impl BackendServer {
         }
     }
 
-    pub async fn run(&self) -> Result<(), Box<dyn std::error::Error>> {
+    pub async fn run(&mut self) -> Result<(), Box<dyn std::error::Error>> {
         loop {
-           
+            self.handle_request().await;
+            self.health_check().await;
         }
     }
 }
